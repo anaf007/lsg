@@ -3,7 +3,8 @@
 
 #!/bin/env python
 import wx
-
+from Controller import *
+wildcard = u"表格2007(*.xlsx)|*.xlsx|表格2003(*.xls)|*.xls"
 class MainPage(wx.Frame):
 
     def __init__(self):
@@ -12,18 +13,43 @@ class MainPage(wx.Frame):
         self.pal=wx.Panel(self,-1)
         self.pal.SetBackgroundColour('white')
         btnBox = wx.BoxSizer(wx.HORIZONTAL)
-        btnBox.Add(wx.Button(self.pal, -1, u"入库单据导入"),0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
-        btnBox.Add(wx.Button(self.pal, -1, u"更新基础数据"),0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
-        btnBox.Add(wx.Button(self.pal, -1, u"转换表格"),0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
-        btnBox.Add(wx.Button(self.pal, -1, u"出库单据导入"),0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
+        self.preBtn = wx.Button(self.pal, -1, u"入库单据导入")
+        self.skuBtn = wx.Button(self.pal, -1, u"更新基础数据")
+        self.ExcelBtn = wx.Button(self.pal, -1, u"转换表格")
+        self.orderBtn = wx.Button(self.pal, -1, u"出库单据导入")
+        btnBox.Add(self.preBtn,0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
+        btnBox.Add(self.skuBtn,0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
+        btnBox.Add(self.ExcelBtn,0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
+        btnBox.Add(self.orderBtn,0,wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,5)
 
         main = wx.BoxSizer(wx.VERTICAL)
         main.Add(btnBox,0,wx.EXPAND,5)
-        logText = wx.TextCtrl(self.pal,style=wx.TE_MULTILINE|wx.TE_RICH2|wx.HSCROLL)
-        main.Add(logText, 1, flag=wx.EXPAND, border=5)
+        self.logText = wx.TextCtrl(self.pal,style=wx.TE_MULTILINE|wx.TE_RICH2|wx.HSCROLL)
+        main.Add(self.logText, 1, flag=wx.EXPAND, border=5)
 
         self.pal.SetSizer(main)
-        logText.SetValue(u'程序初始化完毕.')
+        self.logText.SetValue(u'程序初始化完毕.\n')
+        self.Bind(wx.EVT_BUTTON, self.OnPreBtn,self.preBtn)
+    def OnPreBtn(self,evt):
+        self.logText.SetValue(self.logText.GetValue()+u'选择文件.\n')
+        dlg = wx.FileDialog(self.pal, message=u"选择文件",wildcard=wildcard,style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.logText.SetValue(self.logText.GetValue()+u'打开文件:'+dlg.GetPath()+".\n") 
+            try:
+                pre_thread(self,dlg.GetPath()).start()
+            except Exception, e:
+                self.logText.SetValue(self.logText.GetValue()+u'处理表单错误:%s'%e+".\n") 
+                wx.MessageBox(u'处理表单错误:%s\n'%e,u'提示',wx.ICON_ERROR)
+        else:
+            self.logText.SetValue(self.logText.GetValue()+u'打开文件文件失败.\n') 
+            
+        dlg.Destroy()
+        self.logText.SetFocus()
+
+    def SetLog(self,msg):
+        self.logText.SetValue(self.logText.GetValue()+msg) 
+
+
 
 
 if __name__ == '__main__':
