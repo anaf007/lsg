@@ -1,6 +1,5 @@
 #coding=utf-8
 import xml
-print(xml.__file__)
 from xml.dom.minidom import Document
 
 doc = Document()  #创建DOM文档对象
@@ -95,12 +94,17 @@ line_qty_due.appendChild(line_qty_due_t)
 
 line_sku_id = doc.createElement('sku_id')
 dataline.appendChild(line_sku_id)
+dataline.appendChild(line_sku_id)
+dataline.appendChild(line_sku_id)
+dataline.appendChild(line_sku_id)
 line_sku_id_t = doc.createTextNode('1128061373010')
 line_sku_id.appendChild(line_sku_id_t)
 
 
 
+
 dcsmergedata.appendChild(dataheaders)
+dataheaders.appendChild(dataheader)
 dataheaders.appendChild(dataheader)
 
 

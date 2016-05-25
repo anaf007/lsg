@@ -2,7 +2,7 @@
 
 
 #!/bin/env python
-import wx
+import wx,time
 from Controller import *
 wildcard = u"表格2007(*.xlsx)|*.xlsx|表格2003(*.xls)|*.xls"
 class MainPage(wx.Frame):
@@ -30,6 +30,8 @@ class MainPage(wx.Frame):
         self.pal.SetSizer(main)
         self.logText.SetValue(u'程序初始化完毕.\n')
         self.Bind(wx.EVT_BUTTON, self.OnPreBtn,self.preBtn)
+        self.Bind(wx.EVT_BUTTON, self.OnSkuBtn,self.skuBtn)
+         
     def OnPreBtn(self,evt):
         self.logText.SetValue(self.logText.GetValue()+u'选择文件.\n')
         dlg = wx.FileDialog(self.pal, message=u"选择文件",wildcard=wildcard,style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
@@ -48,6 +50,23 @@ class MainPage(wx.Frame):
 
     def SetLog(self,msg):
         self.logText.SetValue(self.logText.GetValue()+msg) 
+
+    def OnSkuBtn(self,evt):
+    	self.logText.SetValue(self.logText.GetValue()+u'选择文件.\n')
+        dlg = wx.FileDialog(self.pal, message=u"选择文件",wildcard=wildcard,style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.logText.SetValue(self.logText.GetValue()+u'打开文件:'+dlg.GetPath()+".\n") 
+            try:
+                sku_thread(self,dlg.GetPath()).start()
+            except Exception, e:
+                self.logText.SetValue(self.logText.GetValue()+u'处理表单错误:%s'%e+".\n") 
+                wx.MessageBox(u'处理表单错误:%s\n'%e,u'提示',wx.ICON_ERROR)
+        else:
+            self.logText.SetValue(self.logText.GetValue()+u'打开文件文件失败.\n') 
+            
+        dlg.Destroy()
+        self.logText.SetFocus()
+
 
 
 
