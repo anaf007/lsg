@@ -29,16 +29,23 @@ class MainPage(wx.Frame):
 
         self.pal.SetSizer(main)
         self.logText.SetValue(u'程序初始化完毕.\n')
-        self.Bind(wx.EVT_BUTTON, self.OnPreBtn,self.preBtn)
-        self.Bind(wx.EVT_BUTTON, self.OnSkuBtn,self.skuBtn)
+        self.Bind(wx.EVT_BUTTON,lambda evt,mark='pre': self.OnBtn(evt,mark),self.preBtn)
+        self.Bind(wx.EVT_BUTTON,lambda evt,mark='sku': self.OnBtn(evt,mark),self.skuBtn)
+        self.Bind(wx.EVT_BUTTON,lambda evt,mark='excel': self.OnBtn(evt,mark),self.ExcelBtn)
+
          
-    def OnPreBtn(self,evt):
+    def OnBtn(self,evt,text=''):
         self.logText.SetValue(self.logText.GetValue()+u'选择文件.\n')
         dlg = wx.FileDialog(self.pal, message=u"选择文件",wildcard=wildcard,style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
             self.logText.SetValue(self.logText.GetValue()+u'打开文件:'+dlg.GetPath()+".\n") 
             try:
-                pre_thread(self,dlg.GetPath()).start()
+            	if text=='pre':
+            		pre_thread(self,dlg.GetPath()).start()
+            	elif text=='sku':
+            		sku_thread(self,dlg.GetPath()).start()
+            	elif text=='excel':
+            		excel_thread(self,dlg.GetPath()).start()
             except Exception, e:
                 self.logText.SetValue(self.logText.GetValue()+u'处理表单错误:%s'%e+".\n") 
                 wx.MessageBox(u'处理表单错误:%s\n'%e,u'提示',wx.ICON_ERROR)
@@ -50,22 +57,6 @@ class MainPage(wx.Frame):
 
     def SetLog(self,msg):
         self.logText.SetValue(self.logText.GetValue()+msg) 
-
-    def OnSkuBtn(self,evt):
-    	self.logText.SetValue(self.logText.GetValue()+u'选择文件.\n')
-        dlg = wx.FileDialog(self.pal, message=u"选择文件",wildcard=wildcard,style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.logText.SetValue(self.logText.GetValue()+u'打开文件:'+dlg.GetPath()+".\n") 
-            try:
-                sku_thread(self,dlg.GetPath()).start()
-            except Exception, e:
-                self.logText.SetValue(self.logText.GetValue()+u'处理表单错误:%s'%e+".\n") 
-                wx.MessageBox(u'处理表单错误:%s\n'%e,u'提示',wx.ICON_ERROR)
-        else:
-            self.logText.SetValue(self.logText.GetValue()+u'打开文件文件失败.\n') 
-            
-        dlg.Destroy()
-        self.logText.SetFocus()
 
 
 
