@@ -8,7 +8,7 @@ wildcard = u"表格2007(*.xlsx)|*.xlsx|表格2003(*.xls)|*.xls"
 class MainPage(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, -1,size=(500,500),title=u'乐思购红草导入软件')
+        wx.Frame.__init__(self, None, -1,size=(500,500),title=u'乐思购红草导入软件-信息技术部')
         self.Center()
         self.pal=wx.Panel(self,-1)
         self.pal.SetBackgroundColour('white')
@@ -32,6 +32,7 @@ class MainPage(wx.Frame):
         self.Bind(wx.EVT_BUTTON,lambda evt,mark='pre': self.OnBtn(evt,mark),self.preBtn)
         self.Bind(wx.EVT_BUTTON,lambda evt,mark='sku': self.OnBtn(evt,mark),self.skuBtn)
         self.Bind(wx.EVT_BUTTON,lambda evt,mark='excel': self.OnBtn(evt,mark),self.ExcelBtn)
+        self.Bind(wx.EVT_BUTTON,lambda evt,mark='order': self.OnBtn(evt,mark),self.orderBtn)
 
          
     def OnBtn(self,evt,text=''):
@@ -46,6 +47,8 @@ class MainPage(wx.Frame):
             		sku_thread(self,dlg.GetPath()).start()
             	elif text=='excel':
             		excel_thread(self,dlg.GetPath()).start()
+            	elif text=='order':
+            		order_thread(self,dlg.GetPath()).start()
             except Exception, e:
                 self.logText.SetValue(self.logText.GetValue()+u'处理表单错误:%s'%e+".\n") 
                 wx.MessageBox(u'处理表单错误:%s\n'%e,u'提示',wx.ICON_ERROR)

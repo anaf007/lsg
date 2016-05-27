@@ -76,6 +76,7 @@ class pre_thread(threading.Thread):
 					dataheader.appendChild(site_id)
 					dataheader.appendChild(status)
 					dataheader.appendChild(supplier_id)
+
 					dataheader.appendChild(datalines)
 
 				#行
@@ -141,8 +142,6 @@ class pre_thread(threading.Thread):
 		except Exception, e:
 			wx.CallAfter(self.win.SetLog,u'转换XML错误,错误原因:%s\n'%e)
 			 
-
-
 
 class sku_thread(threading.Thread):
 	def __init__(self,windows,path):
@@ -215,7 +214,11 @@ class excel_thread(threading.Thread):
 
 		#得到库存字典
 		goods_list = []
-		goods_tup = Connect().select('*','lsg_sku')
+		try:
+			goods_tup = Connect().select('*','lsg_sku')
+		except Exception, e:
+			wx.CallAfter(self.win.SetLog,u'打开数据库失败%s.\n'%e);return
+		
 		ok_list = []
 		no_list = []
 		con_list = []
@@ -275,3 +278,152 @@ class excel_thread(threading.Thread):
 			file.save(select_dialog.GetPath()+u"/LSG"+time.strftime(u"%Y%m%d%H%M%S",time.localtime())+".xls")
 		select_dialog.Destroy()
 		wx.CallAfter(self.win.SetLog,u'转换操作完成.\n')
+
+	
+
+class order_thread(threading.Thread):
+	def __init__(self,windows,path):
+		threading.Thread.__init__(self)
+		threading.Event().clear()
+		self.win = windows
+		self.path = path
+	def run(self):
+		wx.CallAfter(self.win.SetLog,u'正在检查表格数据.\n')
+		table = xlrd.open_workbook(self.path,encoding_override='utf-8').sheets()[0]
+		tableData= []
+		for rownum in range(1,table.nrows):
+			if table.row_values(rownum):
+				tableData.append(table.row_values(rownum))
+
+		wx.CallAfter(self.win.SetLog,u'正在转换XML文件.\n')
+		try:
+			doc = Document()  #创建DOM文档对象
+			dcsmergedata = doc.createElement('dcsmergedata') #创建根元素
+			dcsmergedata.setAttribute('xmlns:xsi',"http://www.w3.org/2001/XMLSchema-instance")#设置命名空间
+			dcsmergedata.setAttribute('xsi:noNamespaceSchemaLocation','../lib/interface_order_header.xsd')
+			doc.appendChild(dcsmergedata)
+			dataheaders = doc.createElement('dataheaders')
+			dcsmergedata.appendChild(dataheaders)
+
+			arr = []
+			index = 1
+			for i,x in enumerate(tableData):
+				
+				if not x[0] in arr :
+					arr.append(str(x[0])) #新订单号
+					index = 1
+
+					dataheader = doc.createElement('dataheader')
+					dataheader.setAttribute('transaction','add')
+					datalines = doc.createElement('datalines')
+
+					#头 创建节点
+					client_id = doc.createElement('client_id')
+					customer_id = doc.createElement('customer_id')
+					from_site_id = doc.createElement('from_site_id')
+					instructions = doc.createElement('instructions')
+					order_id = doc.createElement('order_id')
+					order_type = doc.createElement('order_type')
+					owner_id = doc.createElement('owner_id')
+					ship_dock = doc.createElement('ship_dock')
+					status = doc.createElement('status')
+
+
+
+					#头 节点设置值
+					client_id_t = doc.createTextNode('LSG')
+					client_id.appendChild(client_id_t)
+					customer_id_t = doc.createTextNode('customer_id_t')
+					customer_id.appendChild(customer_id_t)
+					from_site_id_t = doc.createTextNode('CPLAJ')
+					from_site_id.appendChild(from_site_id_t)
+					instructions_t = doc.createTextNode(x[6])
+					instructions.appendChild(instructions_t)
+					order_id_t = doc.createTextNode(x[0])
+					order_id.appendChild(order_id_t)
+					order_type_t = doc.createTextNode(u'出库单')
+					order_type.appendChild(order_type_t)
+					owner_id_t = doc.createTextNode('LSG')
+					owner_id.appendChild(owner_id_t)
+					ship_dock_t = doc.createTextNode('LFH01')
+					ship_dock.appendChild(ship_dock_t)
+					status_t = doc.createTextNode('Released')
+					status.appendChild(status_t)
+
+					dataheaders.appendChild(dataheader)
+
+					dataheader.appendChild(client_id)
+					dataheader.appendChild(customer_id)
+					dataheader.appendChild(from_site_id)
+					dataheader.appendChild(instructions)
+					dataheader.appendChild(order_id)
+					dataheader.appendChild(order_type)
+					dataheader.appendChild(owner_id)
+					dataheader.appendChild(ship_dock)
+					dataheader.appendChild(status)
+
+					dataheader.appendChild(datalines)
+
+				#行
+				dataline = doc.createElement('dataline')
+				dataline.setAttribute('transaction','add')
+				line_client_id = doc.createElement('client_id')
+				line_condition_id = doc.createElement('condition_id')
+				line_line_id = doc.createElement('line_id')
+				line_notes_id = doc.createElement('notes')
+				line_order_id = doc.createElement('order_id')
+				line_owner_id = doc.createElement('owner_id')
+				line_qty_ordered = doc.createElement('qty_ordered')
+				line_sku_id = doc.createElement('sku_id')
+
+
+				dataline.appendChild(line_client_id)
+				dataline.appendChild(line_condition_id)
+				dataline.appendChild(line_line_id)
+				dataline.appendChild(line_notes_id)
+				dataline.appendChild(line_order_id)
+				dataline.appendChild(line_owner_id)
+				dataline.appendChild(line_qty_ordered)
+				dataline.appendChild(line_sku_id)
+
+				datalines.appendChild(dataline)
+
+				line_client_id_t = doc.createTextNode('LSG')
+				line_client_id.appendChild(line_client_id_t)
+				line_condition_id_t = doc.createTextNode(str(x[1]))
+				line_condition_id.appendChild(line_condition_id_t)
+				line_line_id_t = doc.createTextNode(str(index))
+				line_line_id.appendChild(line_line_id_t)
+				line_notes_t = doc.createTextNode(str(x[6]))
+				line_notes_id.appendChild(line_notes_t)
+				line_order_id_t = doc.createTextNode(str(x[0]))
+				line_order_id.appendChild(line_order_id_t)
+				line_owner_id_t = doc.createTextNode('LSG')
+				line_owner_id.appendChild(line_owner_id_t)
+				line_qty_ordered_t = doc.createTextNode(str(int(float(str(x[5])))))
+				line_qty_ordered.appendChild(line_qty_ordered_t)
+				line_sku_id_t = doc.createTextNode(str(int(float(str(x[3])))))
+				line_sku_id.appendChild(line_sku_id_t)
+				
+				index = index+1
+			filename = str(time.strftime(u"%Y%m%d%H%M%S",time.localtime()))
+			path = sys.path[0]+'\\xml\\'+filename+'_interface_order.xml'
+			f = open(path,'w')
+			f.write(doc.toprettyxml(indent = '    '))
+			f.close()
+			wx.CallAfter(self.win.SetLog,u'转换完成,文件保存在:\n%s.\n'%path)
+
+			#上传FTP
+			ftp_server = '192.168.2.199'
+			try:
+				wx.CallAfter(self.win.SetLog,u'正在连接服务器%s...\n'%ftp_server)
+				ftp = ftplib.FTP(ftp_server)
+				ftp.login('tstdba','tstdba')
+				ftp.storlines('STOR comms/intray/'+filename+'_interface_order.xml',open(path))
+				wx.CallAfter(self.win.SetLog,u'XML文件上传完成.\n')
+			except Exception, e:
+				wx.CallAfter(self.win.SetLog,u'连接服务器%s失败...\n'%ftp_server)
+
+				
+		except Exception, e:
+			wx.CallAfter(self.win.SetLog,u'转换XML错误,错误原因:%s\n'%e)
