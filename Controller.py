@@ -23,8 +23,8 @@ class pre_thread(threading.Thread):
 		try:
 			doc = Document()  #创建DOM文档对象
 			dcsmergedata = doc.createElement('dcsmergedata') #创建根元素
-			dcsmergedata.setAttribute('xmlns:xsi',"http://www.w3.org/2001/XMLSchema-instance")#设置命名空间
 			dcsmergedata.setAttribute('xsi:noNamespaceSchemaLocation','../lib/interface_pre_advice_header.xsd')#引用本地XML Schema
+			dcsmergedata.setAttribute('xmlns:xsi',"http://www.w3.org/2001/XMLSchema-instance")#设置命名空间
 			doc.appendChild(dcsmergedata)
 			dataheaders = doc.createElement('dataheaders')
 			dcsmergedata.appendChild(dataheaders)
@@ -56,6 +56,8 @@ class pre_thread(threading.Thread):
 					notes_t = doc.createTextNode(str(x[12]))
 					notes.appendChild(notes_t)
 					owner_id_t = doc.createTextNode('LSG')
+					client_id_t = doc.createTextNode('LSG')
+					client_id.appendChild(client_id_t)
 					owner_id.appendChild(owner_id_t)
 					pre_advice_id_t = doc.createTextNode(str(x[1]))
 					pre_advice_id.appendChild(pre_advice_id_t)
@@ -121,7 +123,7 @@ class pre_thread(threading.Thread):
 				index = index+1
 				
 
-			filename = str(time.strftime(u"%Y%m%d%H%M%S",time.localtime()))
+			filename = str(time.strftime(u"%Y_%m_%d_%H%M%S",time.localtime()))
 			path = sys.path[0]+'\\xml\\'+filename+'_LSG_cl_interface_pre.xml'
 			f = open(path,'w')
 			f.write(doc.toprettyxml(indent = '    '))
@@ -129,11 +131,11 @@ class pre_thread(threading.Thread):
 			wx.CallAfter(self.win.SetLog,u'转换完成,文件保存在:\n%s.\n'%path)
 
 			#上传FTP
-			ftp_server = '192.168.2.199'
+			ftp_server = '192.168.2.100'
 			try:
 				wx.CallAfter(self.win.SetLog,u'正在连接服务器%s...\n'%ftp_server)
 				ftp = ftplib.FTP(ftp_server)
-				ftp.login('tstdba','tstdba')
+				ftp.login('dcsdba','dcsabd')
 				ftp.storlines('STOR comms/intray/'+filename+'_LSG_cl_interface_pre.xml',open(path))
 				wx.CallAfter(self.win.SetLog,u'XML文件上传完成.\n')
 			except Exception, e:
@@ -222,7 +224,7 @@ class excel_thread(threading.Thread):
 		ok_list = []
 		no_list = []
 		con_list = []
-		order_lsg = 'lsg'+str(time.strftime(u"%Y%m%d%H%M%S",time.localtime())) #单号
+		order_lsg = 'lsgc'+str(time.strftime(u"%Y%m%d%H%M%S",time.localtime())) #单号
 		wx.CallAfter(self.win.SetLog,u'正在转换表格数据.\n')
 		try:
 			for i in table_data_list:
@@ -239,13 +241,13 @@ class excel_thread(threading.Thread):
 					if str(int(float(str(i[0])))) == str(goods[5]) and str(i[2])==str(goods[9]) and str(i[3])==str(goods[11]):
 						
 						chbm = str(int(float(str(i[0]))))
-						chmc = str(int(float(str(i[0]))))+'"'+str(i[1])
+						chmc = str(int(float(str(i[0]))))+"'"+str(i[1])+"'"
 						if str(i[2])==str(goods[9]):
 							chbm = chbm+str(goods[8])
-							chmc = chmc+i[2]+'"'
+							chmc = chmc+i[2]
 						if str(i[3])==str(goods[11]):
 							chbm = chbm+str(goods[10])
-							chmc = chmc+'"'+str(i[3])
+							chmc = chmc+"'"+str(i[3])
 						ok_list.append([order_lsg,str(i[7]),'',chbm,chmc,str(int(float(str(i[5])))),str(i[8])])
 						break
 					else:
@@ -275,7 +277,7 @@ class excel_thread(threading.Thread):
 				excel_file.write(i+1,i_index,x_v)
 		select_dialog = wx.DirDialog(None, u"选择保存的路径",style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
 		if select_dialog.ShowModal() == wx.ID_OK:
-			file.save(select_dialog.GetPath()+u"/LSG"+time.strftime(u"%Y%m%d%H%M%S",time.localtime())+".xls")
+			file.save(select_dialog.GetPath()+u"/LSGC"+time.strftime(u"%Y%m%d%H%M%S",time.localtime())+".xls")
 		select_dialog.Destroy()
 		wx.CallAfter(self.win.SetLog,u'转换操作完成.\n')
 
@@ -299,8 +301,8 @@ class order_thread(threading.Thread):
 		try:
 			doc = Document()  #创建DOM文档对象
 			dcsmergedata = doc.createElement('dcsmergedata') #创建根元素
-			dcsmergedata.setAttribute('xmlns:xsi',"http://www.w3.org/2001/XMLSchema-instance")#设置命名空间
 			dcsmergedata.setAttribute('xsi:noNamespaceSchemaLocation','../lib/interface_order_header.xsd')
+			dcsmergedata.setAttribute('xmlns:xsi',"http://www.w3.org/2001/XMLSchema-instance")#设置命名空间
 			doc.appendChild(dcsmergedata)
 			dataheaders = doc.createElement('dataheaders')
 			dcsmergedata.appendChild(dataheaders)
@@ -333,7 +335,7 @@ class order_thread(threading.Thread):
 					#头 节点设置值
 					client_id_t = doc.createTextNode('LSG')
 					client_id.appendChild(client_id_t)
-					customer_id_t = doc.createTextNode('customer_id_t')
+					customer_id_t = doc.createTextNode('LSG01')
 					customer_id.appendChild(customer_id_t)
 					from_site_id_t = doc.createTextNode('CPLAJ')
 					from_site_id.appendChild(from_site_id_t)
@@ -406,7 +408,7 @@ class order_thread(threading.Thread):
 				line_sku_id.appendChild(line_sku_id_t)
 				
 				index = index+1
-			filename = str(time.strftime(u"%Y%m%d%H%M%S",time.localtime()))
+			filename = str(time.strftime(u"%Y_%m_%d_%H%M%S",time.localtime()))
 			path = sys.path[0]+'\\xml\\'+filename+'_interface_order.xml'
 			f = open(path,'w')
 			f.write(doc.toprettyxml(indent = '    '))
@@ -414,11 +416,11 @@ class order_thread(threading.Thread):
 			wx.CallAfter(self.win.SetLog,u'转换完成,文件保存在:\n%s.\n'%path)
 
 			#上传FTP
-			ftp_server = '192.168.2.199'
+			ftp_server = '192.168.2.100'
 			try:
 				wx.CallAfter(self.win.SetLog,u'正在连接服务器%s...\n'%ftp_server)
 				ftp = ftplib.FTP(ftp_server)
-				ftp.login('tstdba','tstdba')
+				ftp.login('dcsdba','dcsabd')
 				ftp.storlines('STOR comms/intray/'+filename+'_interface_order.xml',open(path))
 				wx.CallAfter(self.win.SetLog,u'XML文件上传完成.\n')
 			except Exception, e:
